@@ -1,0 +1,15 @@
+{
+  "name": "Printer at COM3 test",
+  "version": "1",
+  "manifest_version": 2,
+  "permissions": ["serial"],
+  "minimum_chrome_version": "23",
+  "icons": {
+    "128": "icon_128.png"
+  },
+  "app": {
+    "background": {
+      "scripts": ["launch.js"]
+    }
+  }
+}

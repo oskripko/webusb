@@ -1,0 +1,51 @@
+<html>
+<body>
+    <textarea id="printContent"></textarea>
+    <input type="submit" onclick="connectAndPrint()" value="Print"/>
+    <P>Type text into box and click on submit button.
+    <script>
+    var device;
+
+    function setup(device) {
+        return device.open()
+        .then(() => device.selectConfiguration(1))
+        .then(() => device.claimInterface(device.configuration.interfaces[0].interfaceNumber))
+    }
+
+    function print() {
+        var string = document.getElementById("printContent").value + "\n";
+        var encoder = new TextEncoder();
+        var data = encoder.encode(string);
+        console.log(data.length);
+        device.transferOut(device.configuration.interfaces[0].alternate.endpoints[1].endpointNumber, data)
+        .catch(error => { console.warn(error); })
+    }
+
+    function connectAndPrint() {
+        console.log(device);
+        if (device == null) {
+            navigator.usb.requestDevice({ filters: [{ vendorId: 22  }, { vendorId: 22  }] })
+            .then(selectedDevice => {
+                device = selectedDevice;
+                console.log(device.configuration);
+                return setup(device);
+            })
+            .then(() => print())
+            .catch(error => { console.log(error); })
+        }
+        else
+            print();
+    }
+
+    navigator.usb.getDevices()
+    .then(devices => {
+        if (devices.length > 0) {
+            device = devices[0];
+            return setup(device);
+        }
+    })
+    .catch(error => { console.log(error); });
+
+    </script>
+</body>
+</html>
