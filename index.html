@@ -8,7 +8,7 @@
 function connectAndPrint() {
   var encoder = new TextEncoder();
     var data = encoder.encode(123);
-    navigator.usb.requestDevice();
+    navigator.usb.getDevices();
   navigator.usb.requestDevice({ filters: [{ vendorId: 3540 }] })
   .then(selectedDevice => {
      device = selectedDevice;
