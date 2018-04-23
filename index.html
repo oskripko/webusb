@@ -5,36 +5,47 @@
     <P>Type text into box and click on submit button.
     <script>
     var device;
-function connectAndPrint() {
-  var encoder = new TextEncoder();
-    var data = encoder.encode(123);
-    navigator.usb.getDevices();
-  navigator.usb.requestDevice({ filters: [{ vendorId: 3540 }] })
-  .then(selectedDevice => {
-     device = selectedDevice;
-     return device.open(); // Begin a session.
-   })
-  .then(() => device.selectConfiguration(1)) // Select configuration #1 for the device.
-  .then(() => device.claimInterface(0)) // Request exclusive control over interface #2.
-  .then(() => device.controlTransferOut({
-      requestType: 'class',
-      recipient: 'interface',
-      request: 0x22,
-      value: 0x01,
-      index: 0x02}, data)) // Ready to receive data
-  .then(() => device.transferIn(5, 64)) // Waiting for 64 bytes of data from endpoint #5.
-  .then(result => {
-    let decoder = new TextDecoder();
-    console.log('Received: ' + decoder.decode(result.data));
-  })
-  .catch(error => { console.log(error); });
-      function setup(device) {
-          return device.open()
-          .then(() => device.selectConfiguration(1))
-          .then(() => device.claimInterface(device.configuration.interfaces[0].interfaceNumber))
-      }
-}
-  
+
+    function setup(device) {
+        return device.open()
+        .then(() => device.selectConfiguration(1))
+        .then(() => device.claimInterface(device.configuration.interfaces[0].interfaceNumber))
+    }
+
+    function print() {
+        var string = document.getElementById("printContent").value + "\n";
+        var encoder = new TextEncoder();
+        var data = encoder.encode(string);
+        console.log(data.length);
+        device.transferOut(device.configuration.interfaces[0].alternate.endpoints[0].endpointNumber, data)
+        .catch(error => { console.warn(error); })
+    }
+
+    function connectAndPrint() {
+        console.log(device);
+        if (device == null) {
+            navigator.usb.requestDevice({ filters: { vendorId: 3540 } })
+            .then(selectedDevice => {
+                device = selectedDevice;
+                console.log(device.configuration);
+                return setup(device);
+            })
+            .then(() => print())
+            .catch(error => { console.log(error); })
+        }
+        else
+            print();
+    }
+
+    navigator.usb.getDevices()
+    .then(devices => {
+        if (devices.length > 0) {
+            device = devices[0];
+            return setup(device);
+        }
+    })
+    .catch(error => { console.log(error); });
+
     </script>
 </body>
 </html>
